@@ -10,7 +10,7 @@
 
 MODEL_NAME = "meta-llama/Meta-Llama-3.1-405B-FP8"
 MODEL_VRAM = 640
-MODEL_LEN = 32000 # lower than context len of 128000 to reduce vRAM usage
+MODEL_LEN = 44000 # lower than context len of 128000 to reduce vRAM usage
 
 #MODEL_NAME = "mistralai/Mistral-7B-v0.3"
 #MODEL_VRAM = 24
