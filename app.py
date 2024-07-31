@@ -1,4 +1,4 @@
-MODEL_NAME = "meta-llama/Meta-Llama-3.1-8B"
+MODEL_NAME = "meta-llama/Meta-Llama-3.1-8B-Dynamic"
 MODEL_LEN = 32000
 
 import modal
@@ -6,9 +6,10 @@ import modal
 MEMORY_GB = 24
 GPU_COUNT = 1
 GPU_TYPE = modal.gpu.A100(count=GPU_COUNT, size="40GB")
-IDLE_TIMEOUT = 5
-REQUEST_TIMEOUT = 20
 MAX_CONCURRENCY = 128
+
+IDLE_TIMEOUT = 3
+REQUEST_TIMEOUT = 20
 
 image = (
     modal.Image.debian_slim(python_version="3.11")
@@ -72,8 +73,6 @@ def serve():
     router.include_router(api_server.router)
 
     app.include_router(router)
-
-    #app.include_router(api_server.router)
 
     engine_args = AsyncEngineArgs(
         model=f"/models/{MODEL_NAME}",
