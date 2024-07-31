@@ -1,17 +1,17 @@
 # TODO: Implement tensorizer for non-quantized models
 
-#MODEL_NAME = "meta-llama/Meta-Llama-3.1-8B"
-#MODEL_VRAM = 80
-#MODEL_LEN = 128000
+MODEL_NAME = "meta-llama/Meta-Llama-3.1-8B"
+MODEL_VRAM = 80
+MODEL_LEN = 128000
 
 #MODEL_NAME = "meta-llama/Meta-Llama-3.1-70B"
 #MODEL_VRAM = 320
 #MODEL_LEN = 128000
 
 # TESTME
-MODEL_NAME = "meta-llama/Meta-Llama-3.1-405B-FP8"
-MODEL_VRAM = 640
-MODEL_LEN = 50000 # lower than context len of 128000 to reduce vRAM usage
+#MODEL_NAME = "meta-llama/Meta-Llama-3.1-405B-FP8"
+#MODEL_VRAM = 640
+#MODEL_LEN = 50000 # lower than context len of 128000 to reduce vRAM usage
 
 #MODEL_NAME = "mistralai/Mistral-7B-v0.3"
 #MODEL_VRAM = 24
@@ -85,7 +85,7 @@ else:
     container_idle_timeout=TIMEOUT,
     allow_concurrent_inputs=128,
     volumes={"/models": volume},
-    secrets=[modal.Secret.from_name("api-token")]
+    secrets=[modal.Secret.from_name("vllm-authentication-token")]
 )
 @modal.asgi_app()
 def serve():
