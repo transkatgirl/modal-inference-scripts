@@ -8,8 +8,7 @@ GPU_COUNT = 1
 GPU_TYPE = modal.gpu.A100(count=GPU_COUNT, size="40GB")
 MAX_CONCURRENCY = 128
 
-IDLE_TIMEOUT = 3
-REQUEST_TIMEOUT = 20
+IDLE_TIMEOUT = 2
 
 image = (
     modal.Image.debian_slim(python_version="3.11")
@@ -33,8 +32,8 @@ app = modal.App(f"vLLM.{MODEL_ID}", image=image)
     gpu=GPU_TYPE,
     memory=(MEMORY_GB * 1024, (MEMORY_GB * 1024) + (4096 * GPU_COUNT)),
     container_idle_timeout=IDLE_TIMEOUT * 60,
-    timeout=REQUEST_TIMEOUT * 60,
     allow_concurrent_inputs=MAX_CONCURRENCY,
+    timeout=int(MODEL_LEN/4) + 8,
     volumes={"/models": volume},
     secrets=[modal.Secret.from_name("api-token")]
 )
