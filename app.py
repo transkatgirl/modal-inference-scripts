@@ -18,6 +18,7 @@ image = (
             "vllm==0.5.3post1",
         ]
     )
+    .env({"VLLM_NO_USAGE_STATS": "1"})
 )
 
 volume = modal.Volume.from_name("models")
@@ -28,8 +29,9 @@ app = modal.App(f"vLLM.{MODEL_ID}", image=image)
 
 @app.function(
     image=image,
+    cpu=GPU_COUNT/2.0,
     gpu=GPU_TYPE,
-    memory=MEMORY_GB * 1024,
+    memory=(MEMORY_GB * 1024, (MEMORY_GB * 1024) + (4096 * GPU_COUNT)),
     container_idle_timeout=IDLE_TIMEOUT * 60,
     timeout=REQUEST_TIMEOUT * 60,
     allow_concurrent_inputs=MAX_CONCURRENCY,
@@ -74,11 +76,16 @@ def serve():
 
     app.include_router(router)
 
+    # TODO: As demand increases, optimize for throughput
+    # https://docs.vllm.ai/en/latest/models/spec_decode.html
+    # https://docs.vllm.ai/en/latest/models/performance.html
+
     engine_args = AsyncEngineArgs(
         model=f"/models/{MODEL_NAME}",
         max_model_len=MODEL_LEN,
         #trust_remote_code=True,
         tensor_parallel_size=GPU_COUNT,
+        tokenizer_pool_size=int(GPU_COUNT/2)+4,
         gpu_memory_utilization=0.98,
         enforce_eager=True, # Reduces cold-start time and memory usage at the cost of performance
         enable_prefix_caching=True,
