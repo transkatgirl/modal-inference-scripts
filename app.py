@@ -129,7 +129,7 @@ def serve():
         max_model_len=MODEL_LEN,
         trust_remote_code=True,
         tensor_parallel_size=GPU_COUNT,
-        tokenizer_pool_size=GPU_COUNT+1,
+        tokenizer_pool_size=max(GPU_COUNT, 2),
         gpu_memory_utilization=0.98,
         enforce_eager=True,
         enable_prefix_caching=True,
