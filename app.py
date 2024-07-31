@@ -1,26 +1,30 @@
-#MODEL_NAME = "meta-llama/Meta-Llama-3.1-8B-Dynamic"
+# TODO: Implement tensorizer for non-quantized models
+
+#MODEL_NAME = "meta-llama/Meta-Llama-3.1-8B"
 #MODEL_VRAM = 80
 #MODEL_LEN = 128000
 
-#MODEL_NAME = "meta-llama/Meta-Llama-3.1-70B-Dynamic"
-#MODEL_VRAM = 160
+#MODEL_NAME = "meta-llama/Meta-Llama-3.1-70B"
+#MODEL_VRAM = 320
 #MODEL_LEN = 128000
 
 # TESTME
-#MODEL_NAME = "meta-llama/Meta-Llama-3.1-405B-FP8"
-#MODEL_VRAM = 640
-#MODEL_LEN = 50000
+MODEL_NAME = "meta-llama/Meta-Llama-3.1-405B-FP8"
+MODEL_VRAM = 640
+MODEL_LEN = 50000 # lower than context len of 128000 to reduce vRAM usage
 
-#MODEL_NAME = "mistralai/Mistral-7B-v0.3-Dynamic"
+#MODEL_NAME = "mistralai/Mistral-7B-v0.3"
 #MODEL_VRAM = 24
 #MODEL_LEN = 32000
 
-MODEL_NAME = "mistralai/Mixtral-8x7B-v0.1-Dynamic"
-MODEL_VRAM = 80
-MODEL_LEN = 32000
+#MODEL_NAME = "mistralai/Mixtral-8x7B-v0.1"
+#MODEL_VRAM = 160
+#MODEL_LEN = 32000
 
-#MODEL_NAME = "mistralai/Mixtral-8x22B-v0.1-Dynamic"
-#MODEL_LEN = 64000
+# FIXME: Seems to produce broken outputs
+#MODEL_NAME = "mistralai/Mixtral-8x22B-v0.1"
+#MODEL_VRAM = 320
+#MODEL_LEN = 48000 # lower than context len of 64000 to reduce vRAM usage
 
 
 import modal
@@ -60,15 +64,25 @@ else:
 CPU_COUNT = GPU_COUNT
 CPU_MEMORY = GPU_MEMORY + (4096 * GPU_COUNT)
 
-TIMEOUT = GPU_COUNT * 3
+if CPU_MEMORY > 344064:
+    CPU_MEMORY = 344064 # hard limit
+
+if GPU_COUNT > 4:
+    TIMEOUT = 20 * 60
+elif GPU_COUNT > 2:
+    TIMEOUT = 9 * 60
+elif GPU_COUNT > 1:
+    TIMEOUT = 6 * 60
+else:
+    TIMEOUT = 3 * 60
 
 @app.function(
     image=image,
     cpu=CPU_COUNT,
     gpu=GPU_TYPE,
     memory=(CPU_MEMORY, CPU_MEMORY),
-    timeout=TIMEOUT * 60,
-    container_idle_timeout=TIMEOUT * 60,
+    timeout=TIMEOUT,
+    container_idle_timeout=TIMEOUT,
     allow_concurrent_inputs=128,
     volumes={"/models": volume},
     secrets=[modal.Secret.from_name("api-token")]
