@@ -33,7 +33,7 @@ app = modal.App(f"vLLM.{MODEL_ID}", image=image)
     memory=(MEMORY_GB * 1024, (MEMORY_GB * 1024) + (4096 * GPU_COUNT)),
     container_idle_timeout=IDLE_TIMEOUT * 60,
     allow_concurrent_inputs=MAX_CONCURRENCY,
-    timeout=int(MODEL_LEN/4) + 8,
+    timeout=int(MODEL_LEN/2) + 12,
     volumes={"/models": volume},
     secrets=[modal.Secret.from_name("api-token")]
 )
