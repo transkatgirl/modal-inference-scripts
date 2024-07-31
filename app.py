@@ -1,15 +1,29 @@
-MODEL_NAME = "meta-llama/Meta-Llama-3.1-8B-Dynamic"
+#MODEL_NAME = "meta-llama/Meta-Llama-3.1-8B-Dynamic"
+#MODEL_VRAM = 80
+#MODEL_LEN = 128000
+
+#MODEL_NAME = "meta-llama/Meta-Llama-3.1-70B-Dynamic"
+#MODEL_VRAM = 160
+#MODEL_LEN = 128000
+
+# TESTME
+#MODEL_NAME = "meta-llama/Meta-Llama-3.1-405B-FP8"
+#MODEL_VRAM = 640
+#MODEL_LEN = 50000
+
+#MODEL_NAME = "mistralai/Mistral-7B-v0.3-Dynamic"
+#MODEL_VRAM = 24
+#MODEL_LEN = 32000
+
+MODEL_NAME = "mistralai/Mixtral-8x7B-v0.1-Dynamic"
+MODEL_VRAM = 80
 MODEL_LEN = 32000
 
+#MODEL_NAME = "mistralai/Mixtral-8x22B-v0.1-Dynamic"
+#MODEL_LEN = 64000
+
+
 import modal
-
-GPU_COUNT = 1
-GPU_TYPE = modal.gpu.A100(count=GPU_COUNT, size="40GB")
-MEMORY_GB = 24
-
-TIMEOUT = 4
-MAX_CONCURRENCY = 128
-
 
 image = (
     modal.Image.debian_slim(python_version="3.11")
@@ -27,14 +41,35 @@ MODEL_ID = MODEL_NAME.split("/")[-1]
 
 app = modal.App(f"vLLM.{MODEL_ID}", image=image)
 
+import math
+
+GPU_MEMORY = MODEL_VRAM * 1024
+
+if GPU_MEMORY > (80 * 1024):
+    GPU_COUNT = math.ceil(GPU_MEMORY / (80 * 1024))
+else:
+    GPU_COUNT = 1
+
+if GPU_MEMORY > (40 * 1024):
+    GPU_TYPE = modal.gpu.A100(count=GPU_COUNT, size="80GB")
+elif GPU_MEMORY > (24 * 1024):
+    GPU_TYPE = modal.gpu.A100(count=GPU_COUNT, size="40GB")
+else:
+    GPU_TYPE = "A10G"
+
+CPU_COUNT = GPU_COUNT
+CPU_MEMORY = GPU_MEMORY + (4096 * GPU_COUNT)
+
+TIMEOUT = GPU_COUNT * 3
+
 @app.function(
     image=image,
-    cpu=GPU_COUNT/2.0,
+    cpu=CPU_COUNT,
     gpu=GPU_TYPE,
-    memory=(MEMORY_GB * 1024, (MEMORY_GB * 1024) + (4096 * GPU_COUNT)),
+    memory=(CPU_MEMORY, CPU_MEMORY),
     timeout=TIMEOUT * 60,
     container_idle_timeout=TIMEOUT * 60,
-    allow_concurrent_inputs=MAX_CONCURRENCY,
+    allow_concurrent_inputs=128,
     volumes={"/models": volume},
     secrets=[modal.Secret.from_name("api-token")]
 )
@@ -83,11 +118,11 @@ def serve():
     engine_args = AsyncEngineArgs(
         model=f"/models/{MODEL_NAME}",
         max_model_len=MODEL_LEN,
-        #trust_remote_code=True,
+        trust_remote_code=True,
         tensor_parallel_size=GPU_COUNT,
-        tokenizer_pool_size=int(GPU_COUNT/2)+4,
+        tokenizer_pool_size=CPU_COUNT+4,
         gpu_memory_utilization=0.98,
-        enforce_eager=True, # Reduces cold-start time and memory usage at the cost of performance
+        enforce_eager=True,
         enable_prefix_caching=True,
     )
 
