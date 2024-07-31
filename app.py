@@ -62,9 +62,6 @@ else:
 
 CPU_MEMORY = GPU_MEMORY + (4096 * GPU_COUNT)
 
-if CPU_MEMORY > 344064:
-    CPU_MEMORY = 344064 # hard limit
-
 if GPU_COUNT > 4:
     TIMEOUT = 12 * 60
 elif GPU_COUNT > 2:
@@ -76,9 +73,9 @@ else:
 
 @app.function(
     image=image,
-    cpu=GPU_COUNT,
+    cpu=max(GPU_COUNT/2.0, GPU_COUNT-4.0), # Only reserve half of each CPU core (up to 4 fewer cores), as usage can temporarily spike above this. See: https://modal.com/docs/guide/resources#reserving-cpu-and-memory
     gpu=GPU_TYPE,
-    memory=(CPU_MEMORY, CPU_MEMORY),
+    memory=(min(CPU_MEMORY, 344064), min(CPU_MEMORY, 344064)), # Containers currently have a hard limit of 344064 MB of memory
     timeout=TIMEOUT,
     container_idle_timeout=TIMEOUT,
     allow_concurrent_inputs=128,
