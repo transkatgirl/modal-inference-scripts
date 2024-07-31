@@ -1,17 +1,16 @@
 # TODO: Implement tensorizer for non-quantized models
 
-MODEL_NAME = "meta-llama/Meta-Llama-3.1-8B"
-MODEL_VRAM = 80
-MODEL_LEN = 128000
+#MODEL_NAME = "meta-llama/Meta-Llama-3.1-8B"
+#MODEL_VRAM = 80
+#MODEL_LEN = 128000
 
 #MODEL_NAME = "meta-llama/Meta-Llama-3.1-70B"
 #MODEL_VRAM = 320
 #MODEL_LEN = 128000
 
-# TESTME
-#MODEL_NAME = "meta-llama/Meta-Llama-3.1-405B-FP8"
-#MODEL_VRAM = 640
-#MODEL_LEN = 50000 # lower than context len of 128000 to reduce vRAM usage
+MODEL_NAME = "meta-llama/Meta-Llama-3.1-405B-FP8"
+MODEL_VRAM = 640
+MODEL_LEN = 32000 # lower than context len of 128000 to reduce vRAM usage
 
 #MODEL_NAME = "mistralai/Mistral-7B-v0.3"
 #MODEL_VRAM = 24
@@ -61,14 +60,13 @@ elif GPU_MEMORY > (24 * 1024):
 else:
     GPU_TYPE = "A10G"
 
-CPU_COUNT = GPU_COUNT
 CPU_MEMORY = GPU_MEMORY + (4096 * GPU_COUNT)
 
 if CPU_MEMORY > 344064:
     CPU_MEMORY = 344064 # hard limit
 
 if GPU_COUNT > 4:
-    TIMEOUT = 20 * 60
+    TIMEOUT = 12 * 60
 elif GPU_COUNT > 2:
     TIMEOUT = 9 * 60
 elif GPU_COUNT > 1:
@@ -78,7 +76,7 @@ else:
 
 @app.function(
     image=image,
-    cpu=CPU_COUNT,
+    cpu=GPU_COUNT,
     gpu=GPU_TYPE,
     memory=(CPU_MEMORY, CPU_MEMORY),
     timeout=TIMEOUT,
@@ -134,7 +132,7 @@ def serve():
         max_model_len=MODEL_LEN,
         trust_remote_code=True,
         tensor_parallel_size=GPU_COUNT,
-        tokenizer_pool_size=CPU_COUNT+4,
+        tokenizer_pool_size=GPU_COUNT+1,
         gpu_memory_utilization=0.98,
         enforce_eager=True,
         enable_prefix_caching=True,

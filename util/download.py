@@ -1,11 +1,11 @@
-MODEL_NAME = "meta-llama/Meta-Llama-3.1-8B"
-MODEL_REVISION = "48d6d0fc4e02fb1269b36940650a1b7233035cbb"
+#MODEL_NAME = "meta-llama/Meta-Llama-3.1-8B"
+#MODEL_REVISION = "48d6d0fc4e02fb1269b36940650a1b7233035cbb"
 
 #MODEL_NAME = "meta-llama/Meta-Llama-3.1-70B"
 #MODEL_REVISION = "7740ff69081bd553f4879f71eebcc2d6df2fbcb3"
 
-#MODEL_NAME = "meta-llama/Meta-Llama-3.1-405B-FP8"
-#MODEL_REVISION = "30cf496dde104e5309a8f7ed3ec33e7722b280f5"
+MODEL_NAME = "meta-llama/Meta-Llama-3.1-405B-FP8"
+MODEL_REVISION = "30cf496dde104e5309a8f7ed3ec33e7722b280f5"
 
 #MODEL_NAME = "meta-llama/Meta-Llama-3.1-405B"
 #MODEL_REVISION = "156cc136479303ef79cb0aedf91e2f2e911d1c5c"
