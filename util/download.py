@@ -34,7 +34,7 @@ image = (
 
 volume = modal.Volume.from_name("models", create_if_missing=True)
 
-app = modal.App(image=image, secrets=[modal.Secret.from_name("my-huggingface-secret")])
+app = modal.App(image=image, secrets=[modal.Secret.from_name("huggingface-secret")])
 
 @app.function(volumes={"/models": volume}, timeout=4 * 60 * 60)
 def download_model(model_name, model_revision):
