@@ -25,7 +25,6 @@ MODEL_LEN = 44000 # lower than context len of 128000 to reduce vRAM usage
 #MODEL_VRAM = 320
 #MODEL_LEN = 48000 # lower than context len of 64000 to reduce vRAM usage
 
-
 import modal
 
 image = (
@@ -62,22 +61,13 @@ else:
 
 CPU_MEMORY = GPU_MEMORY + (4096 * GPU_COUNT)
 
-if GPU_COUNT > 4:
-    TIMEOUT = 12 * 60
-elif GPU_COUNT > 2:
-    TIMEOUT = 9 * 60
-elif GPU_COUNT > 1:
-    TIMEOUT = 6 * 60
-else:
-    TIMEOUT = 3 * 60
-
 @app.function(
     image=image,
     cpu=max(GPU_COUNT/2.0, GPU_COUNT-4.0), # Only reserve half of each CPU core (up to 4 fewer cores), as usage can temporarily spike above this. See: https://modal.com/docs/guide/resources#reserving-cpu-and-memory
     gpu=GPU_TYPE,
     memory=(min(CPU_MEMORY, 344064), min(CPU_MEMORY, 344064)), # Containers currently have a hard limit of 344064 MB of memory
-    timeout=TIMEOUT,
-    container_idle_timeout=TIMEOUT,
+    timeout=3 * 60 * 60,
+    container_idle_timeout=15 * 60,
     allow_concurrent_inputs=128,
     volumes={"/models": volume},
     secrets=[modal.Secret.from_name("vllm-authentication-token")]
@@ -124,6 +114,8 @@ def serve():
     # https://docs.vllm.ai/en/latest/models/spec_decode.html
     # https://docs.vllm.ai/en/latest/models/performance.html
 
+    import random
+
     engine_args = AsyncEngineArgs(
         model=f"/models/{MODEL_NAME}",
         max_model_len=MODEL_LEN,
@@ -133,6 +125,7 @@ def serve():
         gpu_memory_utilization=0.98,
         enforce_eager=True,
         enable_prefix_caching=True,
+        seed=random.randint(-2147483648, 2147483647),
     )
 
     engine = AsyncLLMEngine.from_engine_args(
