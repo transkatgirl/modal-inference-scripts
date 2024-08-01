@@ -125,7 +125,7 @@ def serve():
         gpu_memory_utilization=0.98,
         enforce_eager=True,
         enable_prefix_caching=True,
-        seed=random.randint(0, 2**32),
+        seed=random.randint(0, (2**32)-1),
     )
 
     engine = AsyncLLMEngine.from_engine_args(
